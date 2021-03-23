@@ -36,6 +36,7 @@ use task_bar::Taskbar;
 use tile_grid::{store::Store, TileGrid};
 use win_event_handler::{win_event::WinEvent, win_event_type::WinEventType};
 use window::Window;
+use std::collections::HashMap;
 
 pub const NOG_BAR_NAME: &'static str = "nog_bar";
 pub const NOG_POPUP_NAME: &'static str = "nog_popup";
@@ -151,6 +152,7 @@ pub struct AppState {
     pub additonal_rules: Vec<Rule>,
     pub window_event_listener: WinEventListener,
     pub workspace_id: i32,
+    pub pinned_windows: HashMap<i32, NativeWindow>
 }
 
 impl Default for AppState {
@@ -169,6 +171,7 @@ impl Default for AppState {
             window_event_listener: WinEventListener::default(),
             workspace_id: 1,
             config,
+            pinned_windows: HashMap::new()
         }
     }
 }
@@ -188,6 +191,7 @@ impl AppState {
             window_event_listener: WinEventListener::default(),
             workspace_id: 1,
             config,
+            pinned_windows: HashMap::new()
         }
     }
     pub fn init(&mut self, config: Config) {
@@ -207,6 +211,15 @@ impl AppState {
             for grid in d.grids.iter_mut() {
                 grid.cleanup()?;
             }
+        }
+
+        for w in self.pinned_windows.values_mut() {
+            if w.is_hidden() {
+                w.show();
+            }
+
+            w.remove_topmost();
+            w.cleanup();
         }
 
         Ok(())
@@ -403,6 +416,23 @@ impl AppState {
             this.change_workspace(1, false);
         }
 
+        let mut pinned_windows = this.pinned_windows.clone();
+        for w in pinned_windows.values_mut() {
+            if w.is_hidden() {
+                w.show();
+            }
+
+            let rules = this.config
+                .rules
+                .iter()
+                .chain(this.additonal_rules.iter())
+                .collect();
+
+            w.set_matching_rule(rules);
+            w.init(false, this.config.use_border)?;
+            w.to_foreground(true);
+        }
+
         info!("Registering windows event handler");
         this.window_event_listener.start(&this.event_channel);
 
@@ -527,6 +557,43 @@ impl AppState {
         if let Some(grid) = display.get_focused_grid_mut() {
             grid.next_axis = direction;
         }
+        Ok(())
+    }
+
+    pub fn toggle_view_pinned(&mut self) -> SystemResult {
+        let pinned_visible = self.pinned_windows.values().any(|w| w.is_visible());
+        if pinned_visible {
+            self.pinned_windows.values_mut().for_each(|w| w.hide());
+        } else {
+            self.pinned_windows.values_mut().for_each(|w| w.show());
+        }
+
+        Ok(())
+    }
+
+    pub fn toggle_pin(&mut self) -> SystemResult {
+        let config = self.config.clone();
+
+        let mut window = NativeWindow::get_foreground_window().expect("Failed to get foreground window");
+
+        if self.pinned_windows.contains_key(&window.id.into()) {
+            let mut window = self.pinned_windows.remove(&window.id.into()).unwrap();
+            window.remove_topmost();
+            window.cleanup();
+        } else {
+            let rules = config
+                .rules
+                .iter()
+                .chain(self.additonal_rules.iter())
+                .collect();
+
+            window.set_matching_rule(rules);
+            window.init(false, config.use_border)?;
+            window.to_foreground(true);
+
+            self.pinned_windows.insert(window.id.into(), window);
+        }
+
         Ok(())
     }
 

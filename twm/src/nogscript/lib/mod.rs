@@ -225,6 +225,18 @@ pub fn create_root_module(
     });
 
     let state = state_arc.clone();
+    window = window.function("toggle_view_pinned", move |_i, _args| {
+        state.lock().toggle_view_pinned();
+        Ok(Dynamic::Null)
+    });
+
+    let state = state_arc.clone();
+    window = window.function("toggle_pin", move |_i, _args| {
+        state.lock().toggle_pin();
+        Ok(Dynamic::Null)
+    });
+
+    let state = state_arc.clone();
     window = window.function("toggle_floating", move |_i, _args| {
         state.lock().toggle_floating();
         Ok(Dynamic::Null)

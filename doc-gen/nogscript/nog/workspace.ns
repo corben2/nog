@@ -47,6 +47,9 @@ extern fn resize(direction, amount)
 /// @param direction "Left" | "Right" | "Up" | "Down"
 extern fn swap(direction)
 
+/// Turns all columns in the current workspace into rows and all rows into columns
+extern fn swap_columns_and_rows()
+
 /// Sets the workspace specific direction in which new windows get ordered
 /// @param direction "Horizontal" | "Vertial"
 extern fn set_split_direction(direction)

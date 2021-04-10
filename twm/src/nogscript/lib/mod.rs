@@ -198,6 +198,12 @@ pub fn create_root_module(
     });
 
     let state = state_arc.clone();
+    workspace = workspace.function("swap_columns_and_rows", move |_i, _args| {
+        state.lock().swap_columns_and_rows();
+        Ok(Dynamic::Null)
+    });
+
+    let state = state_arc.clone();
     workspace = workspace.function("set_split_direction", move |_i, args| {
         state
             .lock()

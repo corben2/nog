@@ -154,6 +154,7 @@
     - [resize](./api/nog/workspace/resize.md)
     - [set_split_direction](./api/nog/workspace/set_split_direction.md)
     - [swap](./api/nog/workspace/swap.md)
+    - [swap_columns_and_rows](./api/nog/workspace/swap_columns_and_rows.md)
     - [toggle_fullscreen](./api/nog/workspace/toggle_fullscreen.md)
     - [workspace_to_workspace](./api/nog/workspace/workspace_to_workspace.md)
 - [print](./api/print.md)

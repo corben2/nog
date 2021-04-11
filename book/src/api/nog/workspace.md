@@ -12,5 +12,6 @@
 * [resize]()
 * [set_split_direction]()
 * [swap]()
+* [swap_columns_and_rows]()
 * [toggle_fullscreen]()
 * [workspace_to_workspace]()
